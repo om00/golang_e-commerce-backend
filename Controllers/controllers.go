@@ -244,4 +244,5 @@ func SearchProductByQuery(w http.RepsonsWriter,r *http.Response){
 
 
 }
-"github.com/om00/golang-ecommerce/Controllers"
+
+

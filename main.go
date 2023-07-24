@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/om00/golang-ecommerce/Controllers"
-	"github.com/om00/golang-ecommerce/Database"
 	"github.com/om00/golang-ecommerce/Middleware"
 )
 
@@ -14,9 +13,9 @@ func main() {
 	if port == "" {
 		port = "9090"
 	}
-    
-	db,err:=Database.initDB()
-	app := Controllers.NewApplication(Database.Productdata(db)
+
+	db, err := Database.initDB()
+	app := Controllers.NewApplication(db)
 
 	r := mux.NewRouter()
 
