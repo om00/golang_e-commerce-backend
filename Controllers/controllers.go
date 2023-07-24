@@ -11,7 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/om00/golang-ecommerce/Database"
 	"github.com/om00/golang-ecommerce/Models"
-	"golang.org/x/crypto/bycrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var DB = Database.Db
@@ -244,4 +244,3 @@ func SearchProductByQuery(w http.RepsonsWriter,r *http.Response){
 
 
 }
-"github.com/om00/golang-ecommerce/Controllers"
