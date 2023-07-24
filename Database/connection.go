@@ -15,7 +15,7 @@ func initDB() *sql.DB,error{
 	errch:=make(chan error,1 )
 
 	go func(){
-	db,err:=sql.open("mysql","username:password@tcp(host:port)/database");
+	db,err:=sql.open("mysql","root:go-lang-ec@tcp(127.0.0.1:3307)/");
 	if err!=nil{
 		errch<-err
 		return 
