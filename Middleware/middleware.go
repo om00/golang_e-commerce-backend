@@ -8,26 +8,28 @@ import (
 	token "github.com/om00/golang-ecommerce/Token"
 )
 
-func Authentication(w http.ResponseWriter, r *http.Request) {
-	Client_token := r.Header.Get("Token")
+func Authentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Client_token := r.Header.Get("Token")
 
-	if Client_token == "" {
-		log.Println("No authtiection provide in header")
-		http.Error(w, "no authietication provided in header", http.StatusInternalServerError)
-		return
-	}
+		if Client_token == "" {
+			log.Println("No authtiection provide in header")
+			http.Error(w, "no authietication provided in header", http.StatusInternalServerError)
+			return
+		}
 
-	claims, err := token.ValidatedToekn(Client_token)
+		claims, err := token.ValidatedToekn(Client_token)
 
-	if err != "" {
-		log.Println("token is not correct")
-		http.Error(w, "token is not correcty", http.StatusBadRequest)
-		return
-	}
+		if err != "" {
+			log.Println("token is not correct")
+			http.Error(w, "token is not correcty", http.StatusBadRequest)
+			return
+		}
 
-	r = r.WithContext(context.WithValue(r.Context(), "email", claims.Email))
+		r = r.WithContext(context.WithValue(r.Context(), "email", claims.Email))
 
-	// Call the next handler in the chain
-	next(w, r)
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
 
 }
