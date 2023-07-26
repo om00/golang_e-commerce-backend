@@ -2,7 +2,6 @@ package Controllers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,18 +11,18 @@ import (
 	"github.com/om00/golang-ecommerce/Models"
 )
 
-func AddAddress(w http.ResponseWriter, r *http.Request, DB *sql.DB) {
+func AddAddress(w http.ResponseWriter, r *http.Request) {
 	var address Models.Address
-	err := json.NewDecoder(r.Body).Decode(&address)
+	err := json.NewDecoder().Decode(&address)
 	if err != nil {
 		log.Println("err while decoidng request json")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
 }
 
-func DeleteAddress(w http.ResponseWriter, r *http.Request, DB *sql.DB) {
+func DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	req_value := r.URL.Query()
 	user_id := req_value.Get("id")
 
@@ -35,11 +34,11 @@ func DeleteAddress(w http.ResponseWriter, r *http.Request, DB *sql.DB) {
 	address := make([]Models.Address, 0)
 
 	query := "UPDATE User SET address=? WHERE id=?"
-	_, err := DB.Exec(query, address, user_id)
+	err := DB.Exec(query, address, user_id)
 
 	if err != nil {
 		log.Println("error while deleting the address")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -48,6 +47,6 @@ func DeleteAddress(w http.ResponseWriter, r *http.Request, DB *sql.DB) {
 
 }
 
-func EditAddress(w http.ResponseWriter, r *http.Request, DB *sql.DB) {
+func EditAddress(w http.ResponseWriter, r *http.Request) {
 
 }
