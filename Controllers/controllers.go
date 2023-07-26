@@ -193,7 +193,6 @@ func SearchProduct(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 }
-
 func SearchProductByQuery(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var searchProduct []Models.Product
 	req_values := r.URL.Query()
@@ -232,5 +231,3 @@ func SearchProductByQuery(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 }
-
-
