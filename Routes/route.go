@@ -1,15 +1,28 @@
 package Routes
 
 import (
+	"database/sql"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/om00/golang-ecommerce/Controllers"
 )
 
-func userRoutes(router *mux.Router) {
+func UserRoutes(router *mux.Router, db *sql.DB) {
 
-	router.Handlefunc("/users/sign-up", Controllers.Signup).Methods("POST")
-	router.Handlefunc("/users/login", Controllers.Login).Methods("POST")
-	router.Handlefunc("/admin/addproduct", Controllers.ProductViewAdmin).Methods("POST")
-	router.Handlefunc("/users/prdouctview", Controllers.SearchProduct).Methods("GET")
-	router.Handlefunc("/users/search", Controllers.SearchProductByQuery).Methods("GET")
+	router.HandleFunc("/users/sign-up", func(w http.ResponseWriter, r *http.Request) {
+		Controllers.Signup(w, r, db)
+	}).Methods("POST")
+	router.HandleFunc("/users/login", func(w http.ResponseWriter, r *http.Request) {
+		Controllers.Login(w, r, db)
+	}).Methods("POST")
+	router.HandleFunc("/admin/addproduct", func(w http.ResponseWriter, r *http.Request) {
+		Controllers.ProductViewAdmin(w, r, db)
+	}).Methods("POST")
+	router.HandleFunc("/users/prdouctview", func(w http.ResponseWriter, r *http.Request) {
+		Controllers.SearchProduct(w, r, db)
+	}).Methods("GET")
+	router.HandleFunc("/users/search", func(w http.ResponseWriter, r *http.Request) {
+		Controllers.SearchProductByQuery(w, r, db)
+	}).Methods("GET")
 }
