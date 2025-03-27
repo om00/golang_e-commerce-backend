@@ -1,6 +1,7 @@
 package Controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -95,52 +96,48 @@ func (ctrl *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func (ctrl *Controller) Login(w http.ResponseWriter, r *http.Request) {
+func (ctrl *Controller) Login(w http.ResponseWriter, r *http.Request) {
 
-// 	var user Models.User
-// 	err := json.NewDecoder(r.Body).Decode(&user)
+	var user Models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Println("error whe decode request, error = ", err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 
-// 	query := "SELECT id,firstName,lastName,phone,email,password FROM User where email=?"
-// 	row := db.QueryRow(query, user.Email)
-// 	/*if err!=nil{
-// 		http.Error(w,err,http.StatusInternalServerError)
-// 		log.println("error while executing query")
-// 		return
-// 	  }else*/if err == sql.ErrNoRows {
-// 		w.WriteHeader(http.StatusNotFound)
-// 		fmt.Fprint(w, "NO user exist with email %s")
-// 		return
-// 	}
+	userDb, err := ctrl.db.LoginUser(user.Email)
+	if err != nil && err != sql.ErrNoRows {
+		log.Println("Error while fetching the data from db", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// 	var firstname, lastname, phone, email, password string
-// 	err = row.Scan(&user.ID, &firstname, &lastname, &phone, &email, &password)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		log.Println("error while executing query=%s", err)
-// 		return
-// 	}
+	if err == sql.ErrNoRows {
+		log.Println("user does not exist")
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
 
-// 	passwordisvalid, msg := verifyPassword(user.Password, password)
+	passwordisvalid, msg := verifyPassword(user.Password, userDb.Password)
 
-// 	if !passwordisvalid {
-// 		w.WriteHeader(http.StatusOK)
-// 		fmt.Fprint(w, msg)
-// 		return
-// 	}
+	if !passwordisvalid {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, msg)
+		return
+	}
 
-// 	user.Token, user.Refresh_Token, _ = Token.TokenGenrator(email, firstname, lastname, phone)
-// 	query = "UPDATE User SET token=?,refreshToken=? where id=?"
+	user.Token, user.Refresh_Token, _ = Token.TokenGenrator(userDb.Email, userDb.First_Name, userDb.Last_Name, userDb.Phone)
 
-// 	_, err = db.Exec(query, user.Token, user.Refresh_Token, user.ID)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		fmt.Println("error while updatinng error=%s", err)
-// 	}
+	err = ctrl.db.UpdateToken(userDb.ID, user.Token, user.Refresh_Token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("error while updatinng error=", err.Error())
+	}
 
-// 	w.WriteHeader(http.StatusFound)
-// 	fmt.Fprint(w, "success")
+	w.WriteHeader(http.StatusFound)
+	fmt.Fprint(w, "success")
 
-// }
+}
 
 // func (ctrl *Controller) ProductViewAdmin(w http.ResponseWriter, r *http.Request) {
 

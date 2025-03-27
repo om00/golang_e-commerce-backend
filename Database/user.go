@@ -14,7 +14,7 @@ func (db *DB) UserAlreadyExist(email string, phone string) (emailCount, phCount 
 
 	}
 
-	err = row.Scan(&emailCount, phCount)
+	err = row.Scan(&emailCount, &phCount)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -50,8 +50,45 @@ func (db *DB) CreateUser(user Models.User) (ID int64, err error) {
 		return 0, nil
 
 	}
-
 	insertID, _ := result.LastInsertId()
 
 	return insertID, nil
+}
+
+func (db *DB) LoginUser(email string) (Models.User, error) {
+
+	query, args, err := squirrel.Select("id", "firstName", "lastName", "email", "password").
+		From("User").
+		Where(squirrel.Eq{"email": email}).
+		Limit(1).ToSql()
+
+	if err != nil {
+		return Models.User{}, err
+	}
+
+	var user Models.User
+	err = db.mainDB.Get(&user, query, args...)
+	if err != nil {
+		return Models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (db *DB) UpdateToken(id int64, token, refreshToken string) (err error) {
+	query, args, err := squirrel.Update("User").
+		Set("token", token).
+		Set("refreshToken", refreshToken).
+		Where(squirrel.Eq{"id": id}).
+		ToSql()
+
+	if err != nil {
+		return err
+	}
+	_, err = db.mainDB.Exec(query, args)
+	if err != nil {
+		return nil
+	}
+
+	return nil
 }

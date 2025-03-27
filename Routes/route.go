@@ -18,9 +18,7 @@ func (api *Api) UserRoutes() {
 	api.router.HandleFunc("/users/sign-up", func(w http.ResponseWriter, r *http.Request) {
 		api.ctrl.Signup(w, r)
 	}).Methods("POST")
-	// api.router.HandleFunc("/users/login", func(w http.ResponseWriter, r *http.Request) {
-	// 	api.ctrl.Login(w, r)
-	// }).Methods("POST")
+	api.router.HandleFunc("/users/login", api.ctrl.Login).Methods("POST")
 	// api.router.HandleFunc("/admin/addproduct", func(w http.ResponseWriter, r *http.Request) {
 	// 	api.ctrl.ProductViewAdmin(w, r)
 	// }).Methods("POST")
@@ -44,9 +42,9 @@ func (api *Api) RoutesWithMiddleWare() {
 	api.router.HandleFunc("/EditAddress", func(w http.ResponseWriter, r *http.Request) {
 		api.ctrl.EditAddress(w, r)
 	}).Methods("PUT")
-	// api.router.HandleFunc("/ListCart", func(w http.ResponseWriter, r *http.Request) {
-	// 	api.ctrl.GetItemFromCart(w, r)
-	// }).Methods("GET")
+	api.router.HandleFunc("/ListCart", func(w http.ResponseWriter, r *http.Request) {
+		api.ctrl.GetItemFromCart(w, r)
+	}).Methods("GET")
 	api.router.HandleFunc("/addtocart", api.ctrl.AddToCart).Methods("GET")
 	api.router.HandleFunc("/addtocart", api.ctrl.AddToCart).Methods("GET")
 	api.router.HandleFunc("/removeitem", api.ctrl.RemoveItem).Methods("GET")
