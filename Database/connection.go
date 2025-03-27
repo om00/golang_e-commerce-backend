@@ -1,22 +1,27 @@
 package Database
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
-func InitDB() (*sql.DB, error) {
+type DB struct {
+	mainDB *sqlx.DB
+	//can add if need another attributes
+}
+
+func InitDB() (*sqlx.DB, error) {
 	timeout := 10 * time.Second
 
-	ch := make(chan *sql.DB, 1)
+	ch := make(chan *sqlx.DB, 1)
 	errch := make(chan error, 1)
 
 	go func() {
-		db, err := sql.Open("mysql", "root:go-lang-ec@tcp(127.0.0.1:3307)/")
+		db, err := sqlx.Open("mysql", "Om:Om07@Golang@tcp(127.0.0.1:3306)/GoEmcDB")
 		if err != nil {
 			errch <- err
 			return
@@ -44,4 +49,13 @@ func InitDB() (*sql.DB, error) {
 
 	}
 
+}
+
+func NewDB() (*DB, error) {
+	db, err := InitDB()
+	if err != nil {
+		fmt.Println("error while Establish connection")
+		return nil, err
+	}
+	return &DB{mainDB: db}, nil
 }

@@ -9,11 +9,11 @@ import (
 	"github.com/om00/golang-ecommerce/Models"
 )
 
-func AddProductToCart(ctx context.Context, db *sql.DB, user_id, product_id int64) error {
+func (db *DB) AddProductToCart(ctx context.Context, user_id, product_id int64) error {
 	var user Models.User
 	var product Models.ProductUser
 	query1 := "SELECT id,userCart FROM User WHERE id=?"
-	row := db.QueryRow(query1, user_id)
+	row := db.mainDB.QueryRow(query1, user_id)
 
 	err := row.Scan(&user.ID, &user.UserCart)
 
@@ -28,7 +28,7 @@ func AddProductToCart(ctx context.Context, db *sql.DB, user_id, product_id int64
 	}
 
 	query2 := "SELECT * FROM Product WHERE id=?"
-	row = db.QueryRow(query2, product_id)
+	row = db.mainDB.QueryRow(query2, product_id)
 
 	err = row.Scan(&product.ID, &product.Product_Name, &product.Price, &product.Rating, &product.Image)
 	if err != nil {
@@ -43,7 +43,7 @@ func AddProductToCart(ctx context.Context, db *sql.DB, user_id, product_id int64
 
 	user.UserCart = append(user.UserCart, product)
 
-	query3, err := db.Prepare("UPDATE User SET userCart=? where id=?")
+	query3, err := db.mainDB.Prepare("UPDATE User SET userCart=? where id=?")
 	if err != nil {
 		log.Println("Error while preparing update query", err)
 		return err
@@ -60,10 +60,10 @@ func AddProductToCart(ctx context.Context, db *sql.DB, user_id, product_id int64
 	return nil
 }
 
-func RemoveItemFromCart(ctx context.Context, db *sql.DB, user_id, product_id int64) error {
+func (db *DB) RemoveItemFromCart(ctx context.Context, user_id, product_id int64) error {
 	var user Models.User
 	query1 := "SELECT id,userCart FROM User WHERE id=?"
-	row := db.QueryRow(query1, user_id)
+	row := db.mainDB.QueryRow(query1, user_id)
 
 	err := row.Scan(&user.ID, &user.UserCart)
 	if err != nil {
@@ -84,7 +84,7 @@ func RemoveItemFromCart(ctx context.Context, db *sql.DB, user_id, product_id int
 
 	}
 
-	query2, err := db.Prepare("UPDATE User SET userCart=? WHERE id=?")
+	query2, err := db.mainDB.Prepare("UPDATE User SET userCart=? WHERE id=?")
 
 	if err != nil {
 		log.Println("Error while preparing query for updation")
@@ -101,7 +101,7 @@ func RemoveItemFromCart(ctx context.Context, db *sql.DB, user_id, product_id int
 
 }
 
-func BuyIteamFromCart(ctx context.Context, db *sql.DB, user_id int64) error {
+func (db *DB) BuyIteamFromCart(ctx context.Context, user_id int64) error {
 
 	var order Models.Order
 	var user Models.User
@@ -109,7 +109,7 @@ func BuyIteamFromCart(ctx context.Context, db *sql.DB, user_id int64) error {
 	order.Order_Cart = make([]Models.ProductUser, 0)
 
 	query := "SELECT id,userCart FROM User WHERE id=?"
-	row := db.QueryRow(query, user_id)
+	row := db.mainDB.QueryRow(query, user_id)
 
 	err := row.Scan(&user.ID, &user.UserCart)
 
@@ -132,7 +132,7 @@ func BuyIteamFromCart(ctx context.Context, db *sql.DB, user_id int64) error {
 
 	order.Discount.Valid = false
 
-	query2, err := db.Prepare("UPDATE User SET userCart=? WHERE id=?")
+	query2, err := db.mainDB.Prepare("UPDATE User SET userCart=? WHERE id=?")
 
 	if err != nil {
 		log.Println("Error while Preparing query")
@@ -145,7 +145,7 @@ func BuyIteamFromCart(ctx context.Context, db *sql.DB, user_id int64) error {
 		return err
 	}
 
-	query3, err := db.Prepare("INSERT INTO Order COLOUMNS(orderlist,created_at,updated_at,price,discount,payment) VALUES  (?,?,?,?,?,?)")
+	query3, err := db.mainDB.Prepare("INSERT INTO Order COLOUMNS(orderlist,created_at,updated_at,price,discount,payment) VALUES  (?,?,?,?,?,?)")
 
 	_, err = query3.Exec(order.Order_Cart, time.Now().Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"), order.Price, order.Discount, order.Payment_Method.COD)
 
@@ -158,7 +158,7 @@ func BuyIteamFromCart(ctx context.Context, db *sql.DB, user_id int64) error {
 
 }
 
-func InstantBuyer(ctx context.Context, db *sql.DB, product_id int64) error {
+func (db *DB) InstantBuyer(ctx context.Context, product_id int64) error {
 
 	var product_details Models.ProductUser
 
@@ -166,7 +166,7 @@ func InstantBuyer(ctx context.Context, db *sql.DB, product_id int64) error {
 
 	query := "SELECT * FROM Product WHERE id=? "
 
-	row := db.QueryRow(query, product_id)
+	row := db.mainDB.QueryRow(query, product_id)
 
 	err := row.Scan(&product_details.ID, &product_details.Product_Name, &product_details.Price,
 		&product_details.Image, &product_details.Rating)
@@ -187,7 +187,7 @@ func InstantBuyer(ctx context.Context, db *sql.DB, product_id int64) error {
 	order.Discount.Valid = false
 	order.Payment_Method.COD = true
 
-	query3, err := db.Prepare("INSERT INTO Order COLOUMNS(orderlist,created_at,updated_at,price,discount,payment) VALUES  (?,?,?,?,?,?)")
+	query3, err := db.mainDB.Prepare("INSERT INTO Order COLOUMNS(orderlist,created_at,updated_at,price,discount,payment) VALUES  (?,?,?,?,?,?)")
 
 	_, err = query3.Exec(order.Order_Cart, time.Now().Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"), order.Price,
 		order.Discount, order.Payment_Method.COD)
