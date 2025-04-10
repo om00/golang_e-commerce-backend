@@ -2,7 +2,10 @@ package Controllers
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -68,35 +71,47 @@ func (ctrl *Controller) RemoveItem(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func (ctrl *Controller) GetItemFromCart(w http.ResponseWriter, r *http.Request) {
-// 	filer_values := r.URL.Query()
-// 	user_id := filer_values.Get("id")
+func (ctrl *Controller) GetItemFromCart(w http.ResponseWriter, r *http.Request) {
+	filer_values := r.URL.Query()
 
-// 	var user Models.User
-// 	query := "Select id,userCart from User where id=?"
-// 	err := ctrl.d.QueryRow(query, user_id).Scan(&user.ID, &user.UserCart)
+	user_id, err := strconv.ParseInt(filer_values.Get("userId"), 10, 64)
+	if user_id == 0 || err != nil {
+		http.Error(w, "user id is empty", http.StatusBadRequest)
+		return
 
-// 	if err != nil {
-// 		log.Println("error in execution of the query")
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
+	}
 
-// 	if err == sql.ErrNoRows {
-// 		log.Println("No data is present with this id")
-// 		http.Error(w, err.Error(), http.StatusOK)
-// 		return
-// 	}
+	product_id, err := strconv.ParseInt(filer_values.Get("productId"), 10, 64)
+	if err != nil {
+		http.Error(w, "Error while fetching product", http.StatusBadRequest)
+		return
+	}
 
-// 	w.Header().Set("Content-Type", "application/json")
-// 	err = json.NewEncoder(w).Encode(user.UserCart)
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-// 	if err != nil {
-// 		log.Println("error while encoding in json ", err)
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 	}
+	products, err := ctrl.db.GetCartItems(ctx, user_id, product_id)
+	if err != nil && err != sql.ErrNoRows {
+		log.Println("error in execution of the query")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// }
+	if err == sql.ErrNoRows {
+		log.Println("No data is present with this id")
+		http.Error(w, err.Error(), http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(products)
+
+	if err != nil {
+		log.Println("error while encoding in json ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+}
 
 func (ctrl *Controller) BuyFromCart(w http.ResponseWriter, r *http.Request) {
 	query_values := r.URL.Query()

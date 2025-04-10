@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/om00/golang-ecommerce/Models"
 )
 
@@ -188,6 +189,9 @@ func (db *DB) InstantBuyer(ctx context.Context, product_id int64) error {
 	order.Payment_Method.COD = true
 
 	query3, err := db.mainDB.Prepare("INSERT INTO Order COLOUMNS(orderlist,created_at,updated_at,price,discount,payment) VALUES  (?,?,?,?,?,?)")
+	if err != nil {
+		return err
+	}
 
 	_, err = query3.Exec(order.Order_Cart, time.Now().Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"), order.Price,
 		order.Discount, order.Payment_Method.COD)
@@ -198,5 +202,42 @@ func (db *DB) InstantBuyer(ctx context.Context, product_id int64) error {
 	}
 
 	return nil
+}
 
+func (db *DB) GetCartItems(ctx context.Context, user_id, product_id int64) ([]Models.ProductUser, error) {
+
+	var product_details []Models.ProductUser
+
+	var order Models.Order
+
+	query, args, err := squirrel.Select("*").
+		From("User").
+		Where(squirrel.Eq{"id": user_id}).
+		Limit(1).ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var user Models.User
+	err = db.mainDB.Get(&user, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	product_details = user.UserCart
+	if product_id != 0 && len(user.UserCart) > 0 {
+		for _, product := range user.UserCart {
+			if product_id == product.ID {
+				product_details = append(product_details, product)
+			}
+
+		}
+	}
+	for _, value := range user.UserCart {
+		order.Price = order.Price + value.Price
+		order.Order_Cart = append(order.Order_Cart, value)
+	}
+
+	return product_details, nil
 }
