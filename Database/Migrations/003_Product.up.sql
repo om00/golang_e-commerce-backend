@@ -1,0 +1,8 @@
+CREATE TABLE `Product` (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    rating DECIMAL(10,2) DEFAULT 0,
+    `image` VARCHAR(100) DEFAULT NULL,
+    FULLTEXT (`name`) 
+);

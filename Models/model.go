@@ -6,12 +6,12 @@ import (
 )
 
 type User struct {
-	ID              int64         `db:"id"`
-	First_Name      string        `db:"firstName"`
-	Last_Name       string        `db:"lastName"`
-	Password        string        `db:"password"`
-	Email           string        `db:"email"`
-	Phone           string        `db:"phone"`
+	ID              int64         `db:"id" json:"id" `
+	First_Name      string        `db:"firstName" json:"firstName" validate:"required"`
+	Last_Name       string        `db:"lastName" json:"lastName" validate:"required"`
+	Password        string        `db:"password" json:"password" validate:"required"`
+	Email           string        `db:"email" json:"email" validate:"required"`
+	Phone           string        `db:"phone" json:"phone" validate:"required"`
 	Token           string        `db:"token"`
 	Refresh_Token   string        `db:"refershToken"`
 	Created_At      time.Time     `db:"created_at"`
@@ -58,4 +58,14 @@ type Order struct {
 type Payment struct {
 	Digital bool
 	COD     bool
+}
+
+type ProductQuery struct {
+	Name  string
+	Price float64
+}
+
+type RefreshTokenReq struct {
+	Token  string `json:"token"`
+	UserId int64  `josn:"userid"`
 }
